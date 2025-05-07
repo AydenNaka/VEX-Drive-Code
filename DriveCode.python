@@ -1,0 +1,90 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+LeftMotor = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
+RightMotor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+controller_1 = Controller(PRIMARY)
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+
+
+# Make random actually random
+def initializeRandomSeed():
+    wait(100, MSEC)
+    random = brain.battery.voltage(MV) + brain.battery.current(CurrentUnits.AMP) * 100 + brain.timer.system_high_res()
+    urandom.seed(int(random))
+      
+# Set random seed 
+initializeRandomSeed()
+
+
+def play_vexcode_sound(sound_name):
+    # Helper to make playing sounds from the V5 in VEXcode easier and
+    # keeps the code cleaner by making it clear what is happening.
+    print("VEXPlaySound:" + sound_name)
+    wait(5, MSEC)
+
+# add a small delay to make sure we don't print in the middle of the REPL header
+wait(200, MSEC)
+# clear the console to make sure we don't have the REPL in the console
+print("\033[2J")
+
+#endregion VEXcode Generated Robot Configuration
+
+# ------------------------------------------
+# 
+# 	Project:      VEXcode Project
+#	Author:       VEX
+#	Created:
+#	Description:  VEXcode V5 Python Project
+# 
+# ------------------------------------------
+
+# Library imports
+from vex import *
+
+# Max Velocity %
+velocityPercent = 50 # Setup Max Velocity Reference
+
+# Stored Motor Values
+leftVelocity = 0 # Setup LeftMotor Velocity Store
+rightVelocity = 0 # Setup RightMotor Velocity Store
+
+# Initiate Motors
+LeftMotor.set_velocity(0, PERCENT) # Set Velocity to 0
+RightMotor.set_velocity(0, PERCENT) # Set Velocity to 0
+
+# Activate Motors
+LeftMotor.spin(FORWARD) # LeftMotor at 0 Velocity
+RightMotor.spin(REVERSE) # RightMotor at 0 Velocity
+
+while True:
+    # Get Combined Axis X Position
+    turnAmount = (controller_1.axis1.position() + controller_1.axis4.position()) / 2 # (Axis 1 + Axis 2) / 2
+
+    # Update Stored Values
+    leftVelocity = turnAmount / (100 / velocityPercent) # Axis Positions * Max Velocity (LeftMotor)
+    rightVelocity = turnAmount / (100 / velocityPercent) # Axis Positions * Max Velocity (LeftMotor)
+
+    # Check if "Forward" or "Reversed" are Requested
+
+    # Forward
+    if controller_1.buttonR2.pressing():
+        leftVelocity += 50 # Increase LeftMotor End Velocity
+        rightVelocity -= 50 # Increase RightMotor End Velocity
+    
+    # Reverse
+    if controller_1.buttonL2.pressing():
+        leftVelocity -= 50 # Decrease RightMotor End Velocity
+        rightVelocity += 50 # Decrease RightMotor End Velocity
+
+    # Set Motor Velocity Values
+    LeftMotor.set_velocity(leftVelocity, PERCENT) # Set LeftMotor Velocity
+    RightMotor.set_velocity(rightVelocity, PERCENT) # Set RightMotor Velocity
